@@ -53,7 +53,7 @@ def render(data):
             ),
         ]
     else:
-        temp = [fac.AntdResult(title='错误', subTitle='联网搜索执行失败', status='error')]
+        temp = [fac.AntdResult(title='联网搜索执行失败', subTitle=data['output'], status='error')]
     return dash_util.process_object(
         html.Div(
             fac.AntdRow(

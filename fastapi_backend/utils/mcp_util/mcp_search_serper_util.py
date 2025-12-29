@@ -20,7 +20,7 @@ class SerperSearch:
         self._api_key = conf.mcp_search_serper_api_key
         self.timeout = conf.mcp_search_serper_timeout
         self.count = count
-        self.max_tokens = int(conf.llm_get_model_name(model_abbr=model_abbr)['context_length'] * 0.6)
+        self.max_tokens = int(conf.llm_get_model_name(model_abbr=model_abbr)['context_length'] * 0.7)
         self.headers = {
             'Content-Type': 'application/json',
         }
@@ -101,19 +101,18 @@ class SerperSearch:
             if token_size >= max_tokens:
                 break
             doc.content = doc.content[: max_tokens - token_size]
-            token_size += llm_util.UtilHistoryMessage.count_tokens(doc.content)
+            token_size += llm_util.UsageStats.estimate_tokens(doc.content)
             truncated_docs.append(doc)
         return truncated_docs
 
 
 def parser_tool_call_result(result_content: str):
-    result_content = json.loads(result_content)
+    result_content = llm_util.FormatPrompt.yaml_to_dict(result_content)
     if result_content['success']:
-        output = json.dumps(result_content['message'], ensure_ascii=False)
+        output = llm_util.FormatPrompt.dict_to_json(result_content['message'])
         return llm_domain.ReturnMcp(status=True, output=output)
     else:
-        output = json.dumps(result_content['message'], ensure_ascii=False)
-        return llm_domain.ReturnMcp(status=False, output=output)
+        return llm_domain.ReturnMcp(status=False, output=result_content['message'])
 
 
 datetime_toolset = FunctionToolset()
@@ -128,21 +127,16 @@ class SerperSearchResult(TypedDict):
 async def serper_search(ctx: RunContext[llm_domain.DepsType], query: str) -> str:
     """
     通过Serper搜索引擎API进行网页的搜索。
-    注意：返回值token占用非常高，在单次会话中只允许调用本工具一次
     参数：
         query (str): 搜索的自然语言查询内容。
     返回：
-        str: 结果json字符串，格式如下：
-            {
-                'success': true/false,  # 是否成功
-                'message': list[str],  # 多个网页的内容信息
-            }
+        str: yaml格式的搜索结果
     """
     try:
-        return json.dumps(
-            {
-                'success': True,
-                'message': [
+        rt = llm_util.FormatPrompt.dict_to_yaml(
+            SerperSearchResult(
+                success=True,
+                message=[
                     dict(
                         doc_type=i.doc_type,
                         title=i.title,
@@ -152,11 +146,16 @@ async def serper_search(ctx: RunContext[llm_domain.DepsType], query: str) -> str
                     )
                     for i in await SerperSearch(model_abbr=ctx.deps.model_abbr).search(query=query)
                 ],
-            }
+            ),
         )
+        context_length = conf.llm_get_model_name(model_abbr=ctx.deps.model_abbr)['context_length']
+        if llm_util.UsageStats(ctx.usage).can_add_ratio(rt, max_context_length=context_length) == 1:
+            return rt
+        else:
+            return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=False, message='本次返回的文本太长，模型上下文不足，主动拒绝本次的联网搜索'))
     except Exception as e:
         logger.exception('Serper搜索错误')
-        return json.dumps({'success': False, 'message': str(e)})
+        return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=False, message=str(e)))
 
 
 mcp_search_serper = llm_domain.Mcp(

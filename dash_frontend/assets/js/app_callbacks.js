@@ -272,9 +272,9 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             if (conversation_area_list.length === 0) { // fix: 搞不懂，popup_conversation_modal回调把currentKey还原的时候，触发了初始回调，按理应该拦截的
                 return window.dash_clientside.no_update;
             }
-            console.debug('触发dashUI历史记录保存')
             let flag_finish = conversation_area_list[conversation_area_list.length - 1]
             if (flag_finish.props.id === 'finish') {
+                console.debug('触发dashUI历史记录保存')
                 return conversation_area_list
             }
             return window.dash_clientside.no_update;

@@ -76,16 +76,16 @@ async def run(
 
     # 生成指令
     instructions = (
-        (f'[Role & Policies]\n{instructions}\n\n' if instructions else '')
-        + (f'[Evidence]\n{document}\n\n' if document else '')
-        + (f'[Context]\n{long_mem}\n\n' if long_mem else '')
-        + '[Output]\n请基于以上信息,提供准确、有据的回答。\n上一次工具调用失败可能是暂时的，你可以重试一次。'
+        (f'# Role & Policies\n{instructions}\n\n' if instructions else '')
+        + (f'# Evidence\n{document}\n\n' if document else '')
+        + (f'# Context\n{long_mem}\n\n' if long_mem else '')
+        + '# Output\n请基于以上信息,提供准确、有据的回答。\n上一次工具调用失败可能是暂时的，你可以重试一次。'
     )
 
     # 如果太长需要一个高保真的总结
     async def summarize_history_messages(messages: list[ModelMessage]) -> list[ModelMessage]:
         if (
-            llm_util.UtilHistoryMessage.count_tokens(str(messages)) > context_length / 2 or len(messages) / 2 > conf.short_memory_len_message_history
+            llm_util.UsageStats.estimate_tokens(str(messages)) > context_length / 2 or len(messages) / 2 > conf.short_memory_len_message_history
         ):  # 超过一半的上下文长度 或者 对话次数超过限制，就进行总结
             return llm_util.ShortMemory.summarize(messages[:-10]) + messages[-10:]
         else:

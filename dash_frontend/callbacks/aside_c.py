@@ -242,7 +242,6 @@ def new_conversation(
     if ctx.triggered_id == 'modal-add-conversation':
         # 检查名字的合法性
         add_conversation_name_default = add_conversation_name_default.strip()
-        print(add_conversation_name_default)
         if not add_conversation_name_default or not conf.is_valid_name(add_conversation_name_default):
             set_props('global-message', {'children': fac.AntdMessage(content='对话名不能为空', type='error')})
             return dash.no_update

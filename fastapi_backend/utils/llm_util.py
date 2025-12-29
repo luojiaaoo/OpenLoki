@@ -1,12 +1,14 @@
 from pydantic_core import to_jsonable_python
-from pydantic_ai import ModelMessagesTypeAdapter, ModelSettings
+from pydantic_ai import ModelMessagesTypeAdapter, ModelSettings, format_as_xml
 from core.configure import conf
 from loguru import logger
 from typing import Dict
 import httpx
 from core.llm import prompt
-from datetime import datetime
+from pydantic_ai.result import RunUsage
+import tiktoken
 import json
+import yaml
 
 
 async def async_iter_get_nth(async_iterator, n=-1):
@@ -29,17 +31,78 @@ class UtilHistoryMessage:
         """Convert JSON-serializable format back to ModelMessage list."""
         return ModelMessagesTypeAdapter.validate_python(json_data)
 
+
+# 判断token使用量
+class UsageStats:
+    def __init__(self, usage: RunUsage):
+        self.usage = usage
+
+    def get_total_tokens_used(self) -> int:
+        """计算已使用的总令牌数"""
+        total = self.usage.input_tokens + self.usage.output_tokens
+        return total
+
     @classmethod
-    def count_tokens(cls, text: str) -> int:
-        """估算文本的 token 数量
-        Args:
-            text: 文本内容
-        Returns:
-            int: token 数量
+    def estimate_tokens(cls, text: str):
         """
-        chinese_chars = sum(1 for ch in text if '\u4e00' <= ch <= '\u9fff')
-        english_words = len([w for w in text.split() if w]) - chinese_chars
-        return int(chinese_chars * 2 + english_words)
+        简单估算 token 数 - 使用 GPT-4 的分词器作为基准
+        """
+        # 使用 GPT-4 的分词器
+        encoding = tiktoken.get_encoding('cl100k_base')
+        # 计算实际 token 数
+        token_count = len(encoding.encode(text))
+        return token_count
+
+    def can_add_ratio(self, estimated_query: str, max_context_length: int, buffer_percentage: float = 0.1) -> float:
+        """
+        检查是否可以添加更多内容
+
+        Args:
+            estimated_tokens: 预计要添加的令牌数
+            max_context_length: 最大上下文长度
+            buffer_percentage: 安全缓冲区百分比（默认为10%）
+        """
+        estimated_tokens = self.estimate_tokens(estimated_query)
+        total_used = self.get_total_tokens_used()
+        buffer_tokens = int(max_context_length * buffer_percentage)
+        need_del_percent = max(0, ((total_used + estimated_tokens + buffer_tokens) - max_context_length) / estimated_tokens)
+        # 传入内容可以保留的百分比，全保留为1
+        return 1 - need_del_percent
+
+    def get_detailed_usage(self, max_context_length: int) -> Dict:
+        """获取详细使用情况报告"""
+        total_used = self.get_total_tokens_used()
+
+        return {
+            'total_used': total_used,
+            'remaining': max_context_length - total_used,
+            'percentage_used': (total_used / max_context_length) * 100,
+            'max_context_length': max_context_length,
+            'breakdown': {
+                'input_tokens': self.usage.input_tokens,
+                'output_tokens': self.usage.output_tokens,
+                'input_audio_tokens': self.usage.input_audio_tokens,
+                'cache_audio_read_tokens': self.usage.cache_audio_read_tokens,
+            },
+        }
+
+
+class FormatPrompt:
+    @classmethod
+    def dict_to_json(cls, obj) -> str:
+        return json.dumps(obj, ensure_ascii=False, indent=2)
+
+    @classmethod
+    def json_to_dict(cls, json_str) -> Dict:
+        return json.loads(json_str)
+
+    @classmethod
+    def yaml_to_dict(cls, yaml_str) -> Dict:
+        return yaml.safe_load(yaml_str)
+
+    @classmethod
+    def dict_to_yaml(cls, obj) -> str:
+        return yaml.safe_dump(obj, allow_unicode=True, sort_keys=False, default_flow_style=False, indent=2, explicit_end=True)
 
 
 # 短期记忆
@@ -102,8 +165,4 @@ class LongMemory:
             logger.error(f'[user_id: {user_id} | conversation_id: {conversation_id} | 长期记忆召回失败] {result.get("message")!r}')
         else:
             logger.info(f'[user_id: {user_id} | conversation_id: {conversation_id} | 长期记忆召回成功] {str(json_data := (result["data"]))!r}')
-            list_mem = [
-                *[f'记忆(时间{datetime.fromtimestamp(int(i["create_time"] // 1000)):%Y-%m-%dT%H:%M:%S}): ' + i['memory_value'] for i in json_data['memory_detail_list']],
-                *[f'偏好(时间{datetime.fromtimestamp(int(i["create_time"] // 1000)):%Y-%m-%dT%H:%M:%S}): ' + i['preference'] for i in json_data['preference_detail_list']],
-            ]
-            return '\n'.join(list_mem)
+            return format_as_xml(json_data)
