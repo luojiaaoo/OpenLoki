@@ -152,7 +152,11 @@ async def serper_search(ctx: RunContext[llm_domain.DepsType], query: str) -> str
         if llm_util.UsageStats(ctx.usage).can_add_ratio(rt, max_context_length=context_length) == 1:
             return rt
         else:
-            return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=False, message='本次返回的文本太长，模型上下文不足，主动拒绝本次的联网搜索'))
+            return llm_util.FormatPrompt.dict_to_yaml(
+                SerperSearchResult(
+                    success=False, message=f'本次返回的文本太长，模型上下文不足，主动拒绝本次的联网搜索，{llm_util.UsageStats(ctx.usage).get_detailed_usage(context_length)}'
+                )
+            )
     except Exception as e:
         logger.exception('Serper搜索错误')
         return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=False, message=str(e)))

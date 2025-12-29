@@ -53,7 +53,7 @@ model_url = "https://api.siliconflow.cn/v1"
 # >>>>> 硅基流动api_key
 api_key = "sk-xxxxxxxxxxxxxxxxxx"
 max_tokens = 8192
-context_length = 128000
+context_length = 256000
 
 
 [llm.Qwen3-VL-30B-A3B-Thinking]
@@ -62,4 +62,4 @@ model_url = "https://api.siliconflow.cn/v1"
 # >>>>> 硅基流动api_key
 api_key = "sk-xxxxxxxxxxxxxxxxxx"
 max_tokens = 8192
-context_length = 128000
+context_length = 256000

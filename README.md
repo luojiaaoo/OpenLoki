@@ -112,7 +112,7 @@ cd fastapi_backend
 python app.py
 ```
 
-2. 启动前端（新开终端）：
+2. 启动前端：
 ```bash
 cd dash_frontend
 python server.py
@@ -144,3 +144,8 @@ python server.py
 1. 开发建议使用Python 3.12+版本
 2. 调试时可将`config.toml`中的`launch_mode`设置为`dev`
 3. 日志文件默认保存在`logs/`目录下
+
+|![](screenshots/欢迎页.png)|![](screenshots/联网搜索结果.png)|
+| ---- | ---- |
+|![](screenshots/支持分类，多模型选择.png)|![](screenshots/支持长短期记忆，联网搜索工具.png)|
+|![](screenshots/思维链显示.png)|![](screenshots/属性修改.png)|
