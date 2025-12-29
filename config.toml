@@ -12,7 +12,7 @@ digest_user_auth_filepath = "../user_auth.toml"
 frontend_bind_host = '127.0.0.1'
 frontend_port = 8000
 backend_url = 'http://127.0.0.1:8001'
-app_title = 'DeepLoki'
+app_title = 'OpenLoki'
 app_version = 'v1.0'
 frontend_log_filepath = "../logs/frontend.log"
 
