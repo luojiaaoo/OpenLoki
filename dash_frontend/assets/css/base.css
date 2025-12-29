@@ -1,0 +1,67 @@
+/* 初始加载动画 */
+._dash-loading {
+    color: transparent;
+    position: fixed;
+    width: calc(512px / 8);
+    height: calc(512px / 8);
+    top: 40vh;
+    left: 50vw;
+    background-image: url('/assets/imgs/logo.png');
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    animation: spin-animation 1.5s infinite;
+}
+
+._dash-loading::after {
+    content: '';
+}
+
+@keyframes spin-animation {
+
+    0%,
+    80% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) rotate(360deg);
+    }
+}
+
+/* 对话消息框相关样式 */
+.conversation-message-box {
+    width: fit-content;
+    min-width: 60px;
+    max-width: 100%;
+    background: #f5f5f5;
+    border-radius: 10px;
+    border: 1px solid #dedede;
+    padding: 10px;
+    box-sizing: border-box;
+    position: relative
+}
+
+.conversation-message-box .ant-typography-copy {
+    vertical-align: -0.2em;
+}
+
+.conversation-message-box-datetime {
+    width: 110px;
+    opacity: 0.2;
+    font-size: 12px;
+}
+
+.conversation-message-box-left {
+    position: absolute;
+    left: 40px;
+    top: -30px;
+}
+
+.conversation-message-box-datetime-right {
+    width: 110px;
+    opacity: 0.2;
+    font-size: 12px;
+    position: absolute;
+    right: 40px;
+    top: -30px;
+}

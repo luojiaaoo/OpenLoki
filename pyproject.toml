@@ -1,0 +1,27 @@
+[project]
+name = "deep-loki"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "cachebox>=5.1.0",
+    "dash>=3.3.0",
+    "fastapi>=0.123.5",
+    "feffery-antd-components>=0.4.2",
+    "feffery-dash-utils>=0.2.6",
+    "feffery-markdown-components>=0.4.2",
+    "feffery-utils-components>=0.3.3",
+    "httpx>=0.28.1",
+    "loguru>=0.7.3",
+    "mineru>=2.6.8",
+    "pydantic-ai-slim[mcp,openai]>=1.26.0",
+    "pyjwt>=2.10.1",
+    "user-agents>=2.2.0",
+    "uvicorn>=0.38.0",
+]
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true

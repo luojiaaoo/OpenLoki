@@ -1,0 +1,65 @@
+[config]
+# dev/prod
+launch_mode = "dev"
+# log level
+log_level = "DEBUG"
+# 后端鉴权JWT配置
+jwt_secret_key = "huzI1KjOnzLIkCjpnTuWVexhuL3brtLwho4Lgh33OVtirYhiFUy8S9xxrJYpepYt"
+
+
+### 前端配置
+digest_user_auth_filepath = "../user_auth.toml"
+frontend_bind_host = '127.0.0.1'
+frontend_port = 8000
+backend_url = 'http://127.0.0.1:8001'
+app_title = 'DeepLoki'
+app_version = 'v1.0'
+frontend_log_filepath = "../logs/frontend.log"
+
+
+### 后端配置
+backend_bind_host = '127.0.0.1'
+backend_port = 8001
+# 日志路径
+backend_log_filepath = "../logs/backend.log"
+# 文件上传
+backend_upload_url_prefix = "/upload"
+backend_upload_dirpath = "../upload/"
+
+[short_memory]
+len_message_history = 20
+summarize_model_name = 'Qwen/Qwen3-32B'
+# >>>>> 硅基流动api_key
+summarize_api_key = "sk-xxxxxxxxxxxxxxxxxx"
+summarize_url = "https://api.siliconflow.cn/v1"
+
+[long_memory]
+# >>>>> 长期记忆引擎，开发者免费使用，https://memos.openmem.net/cn/
+memos_api_key = "mpg-xxxxxxxxx"
+memos_url = "https://memos.memtensor.cn/api/openmem/v1"
+memos_timeout = 30
+
+[mcp]
+split_string = 'NameIsFollow'
+
+[mcp.search]
+# >>>>> serper联网搜索api_key，注册送2500次免费搜索额度，https://serper.dev/login
+serper_api_key = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+serper_timeout = 60
+
+[llm.Qwen3-32B]
+model_name = "Qwen/Qwen3-32B"
+model_url = "https://api.siliconflow.cn/v1"
+# >>>>> 硅基流动api_key
+api_key = "sk-xxxxxxxxxxxxxxxxxx"
+max_tokens = 8192
+context_length = 128000
+
+
+[llm.Qwen3-VL-30B-A3B-Thinking]
+model_name = "Qwen/Qwen3-VL-30B-A3B-Thinking"
+model_url = "https://api.siliconflow.cn/v1"
+# >>>>> 硅基流动api_key
+api_key = "sk-xxxxxxxxxxxxxxxxxx"
+max_tokens = 8192
+context_length = 128000
