@@ -2,7 +2,8 @@ from dash import Input, MATCH, Output, State
 import feffery_antd_components as fac
 import feffery_utils_components as fuc
 from server import app
-from dash._utils import stringify_id
+# from dash._utils import stringify_id
+from utils import dash_util
 
 
 def render_conversation_area_content(classification_conversation_name):
@@ -20,7 +21,7 @@ def render_conversation_area_content(classification_conversation_name):
             # 聊天消息列表像素高度监听
             fuc.FefferyListenElementSize(
                 id={'type': 'listen-conversation-area-list-height', 'index': classification_conversation_name},
-                target=stringify_id({'type': 'conversation-area-list', 'index': classification_conversation_name}),
+                target=dash_util.stringify_id({'type': 'conversation-area-list', 'index': classification_conversation_name}),
             ),
         ],
         id={'type': 'conversation-area', 'index': classification_conversation_name},
