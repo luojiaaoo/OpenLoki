@@ -160,12 +160,8 @@ async function changeLocalStore(type_op, name, new_name='') {
     }
 }
 
-async function _handleAssistantMessageYield(data, history_id, btn_send_id, btn_stop_id) {
-    if (data === null) {
-        return window.dash_clientside.no_update;
-    }
-    let json_data = JSON.parse(data)
-    console.debug('原始内容', json_data.type)
+async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, btn_stop_id) {
+    console.debug('数据类型', json_data.type)
     let patch = new dash_clientside.Patch;
     if (json_data.type === 'start_thinking') {
         let { id_markdown, component } = await getData(

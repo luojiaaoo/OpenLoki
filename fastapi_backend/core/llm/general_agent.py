@@ -87,7 +87,7 @@ async def run(
         if (
             llm_util.UsageStats.estimate_tokens(str(messages)) > context_length / 2 or len(messages) / 2 > conf.short_memory_len_message_history
         ):  # 超过一半的上下文长度 或者 对话次数超过限制，就进行总结
-            return llm_util.ShortMemory.summarize(messages[:-10]) + messages[-10:]
+            return (await llm_util.ShortMemory.summarize(messages[:-20])) + messages[-20:]
         else:
             return messages
 

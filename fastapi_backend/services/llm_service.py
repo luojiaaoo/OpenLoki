@@ -41,11 +41,11 @@ async def service_general_agent(call_llm: llm_schema.CallLLM):
         if i['type'] == llm_domain.ChatType.THINKING:
             minimum_interval = 0.3
         else:
-            minimum_interval = 0.15
+            minimum_interval = 0.2
         uuid_str = uuid.uuid4().hex  # 加上uuid，如果内容重复也能触发回调
         if str(i).startswith('start_'):
             for _ in range(3):
-                await asyncio.sleep(0.02)
+                await asyncio.sleep(0.1)
                 yield f'data: {json.dumps({**i, "force_refresh": uuid_str}, ensure_ascii=False)}\n\n'  # start_开头是新建对话框的标识，千万不能丢包，多发几次降低丢包的概率
         else:
             yield f'data: {json.dumps({**i, "force_refresh": uuid_str}, ensure_ascii=False)}\n\n'

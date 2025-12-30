@@ -281,11 +281,14 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
         },
         handleAssistantMessageYield: (data, history_id, btn_send_id, btn_stop_id) => {
             // 将新任务加入队列
+            if (data === null) {
+                return window.dash_clientside.no_update;
+            }
+            const json_data = JSON.parse(data);
             const task = lock_sse
-                .then(() => new Promise(resolve => setTimeout(resolve, 100)))
-                .then(() => _handleAssistantMessageYield(data, history_id, btn_send_id, btn_stop_id));
-
-            // 更新锁，让后续任务等待这个任务完成
+                .then(() =>
+                    _handleAssistantMessageYield(json_data, history_id, btn_send_id, btn_stop_id)
+                )
             lock_sse = task.catch(err => {
                 console.error('SSE任务失败:', err);
                 // 即使失败，也要继续执行后续任务

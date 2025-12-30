@@ -65,7 +65,6 @@ def get_assistant_tool_call_box():
         logger.error(f'获取agent请求工具调用盒子组件失败: {e}\n{traceback.format_exc()}')
 
 
-# TODO: 工具消息盒子/响应消息盒子/思考消息盒子
 @component_bp.route('/tool_result_serper_search_box', methods=['post'])
 def get_tool_result_serper_search_box():
     try:
