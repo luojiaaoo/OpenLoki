@@ -175,8 +175,16 @@ async def run(
                             logger_info(
                                 f'[Tools] Tool call {event.tool_call_id!r} returned => {event.result.content[:100] + "..." + event.result.content[-100:] if len(event.result.content) > 300 else event.result.content}'
                             )
-                            return_mcp: llm_domain.ReturnMcp = parseres_tool_call_result[tool_prefix](event.result.content)
-                            yield dict(type=llm_domain.ChatType.TOOL_CALL_RETURN, data=dict(status=return_mcp.status, output=return_mcp.output))
+                            if parseres_tool_call_result[tool_prefix] is not None:
+                                return_mcp: llm_domain.ReturnMcp = parseres_tool_call_result[tool_prefix](event.result.content)
+                                yield dict(
+                                    type=llm_domain.ChatType.START_TOOL_CALL_RETURN,
+                                    data=dict(
+                                        status=return_mcp.status,
+                                        output=return_mcp.output,
+                                    ),
+                                )
+                                await asyncio.sleep(1)
             elif Agent.is_end_node(node):
                 # Once an End node is reached, the agent run is complete
                 assert run.result is not None
@@ -187,9 +195,9 @@ async def run(
                     f'=== Token Usage ===\n'
                     f'{
                         dict(
-                            output_tokens=(i := run.usage()).output_tokens,
-                            input_tokens=i.input_tokens,
-                            total_tokens=i.total_tokens,
+                            input_tokens=(usage := run.usage()).input_tokens,
+                            output_tokens=usage.output_tokens,
+                            total_tokens=usage.total_tokens,
                         )
                     }'
                 )
@@ -197,9 +205,9 @@ async def run(
                     type=llm_domain.ChatType.FINAL_OUTPUT,
                     data=node.data.output,
                     **dict(
-                        output_tokens=(i := run.usage()).output_tokens,
-                        input_tokens=i.input_tokens,
-                        total_tokens=i.total_tokens,
+                        input_tokens=(usage := run.usage()).input_tokens,
+                        output_tokens=usage.output_tokens,
+                        total_tokens=usage.total_tokens,
                     ),
                 )
                 yield dict(

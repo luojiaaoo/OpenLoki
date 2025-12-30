@@ -268,6 +268,8 @@ app.clientside_callback(
         State({'type': conf.suffix_llm_history_message_keyword, 'index': MATCH}, 'data'),
         # 是否正在发生
         State({'type': 'btn-send-input-text', 'index': MATCH}, 'loading'),
+        # bearer token
+        State('store-bearer-token', 'data'),
     ],
     prevent_initial_call=True,
 )

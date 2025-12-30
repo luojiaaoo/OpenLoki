@@ -164,9 +164,11 @@ async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, 
     console.debug('数据类型', json_data.type)
     let patch = new dash_clientside.Patch;
     if (json_data.type === 'start_thinking') {
-        let { id_markdown, component } = await getData(
+        let { id_markdown, component } = await postData(
             url = '/component/assistant_thinking_box',
+            data = {},
             with_token = false
+
         )
         window.last_thinking_id_for_dash = id_markdown
         // console.debug('保存thinking box id', window.last_thinking_id_for_dash)
@@ -180,8 +182,9 @@ async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, 
         return window.dash_clientside.no_update;
     }
     if (json_data.type === 'start_output') {
-        let { id_markdown, id_copy_markdown, component } = await getData(
+        let { id_markdown, id_copy_markdown, component } = await postData(
             url = '/component/assistant_output_box',
+            data = {},
             with_token = false
         )
         window.last_output_id_for_dash = id_markdown
@@ -189,7 +192,7 @@ async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, 
         // console.debug('保存output box id', window.last_id_for_dash)
         return patch.append([], component).build();
     }
-    if (json_data.type === 'delta_optput') {
+    if (json_data.type === 'delta_output') {
         let delta = json_data.data
         let markdownStr = dash_component_api.getLayout(window.last_output_id_for_dash).props.markdownStr
         let copy_markdownStr = dash_component_api.getLayout(window.last_output_id_copy_markdown_for_dash).props.text
@@ -209,8 +212,9 @@ async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, 
         return window.dash_clientside.no_update;
     }
     if (json_data.type === 'start_tool_call') {
-        let { id_markdown, component } = await getData(
+        let { id_markdown, component } = await postData(
             url = '/component/assistant_tool_call_box',
+            data = {},
             with_token = false
         )
         window.last_tool_call_id_for_dash = id_markdown
@@ -222,11 +226,15 @@ async function _handleAssistantMessageYield(json_data, history_id, btn_send_id, 
         dash_clientside.set_props(window.last_tool_call_id_for_dash, { markdownStr: JSON.stringify(args, null, 4) })
         return window.dash_clientside.no_update;
     }
-    if (json_data.type === 'tool_call_return') {
+    if (json_data.type === 'start_tool_call_return') {
         if (window.tool_type_for_dash === 'serper_search') {
+            data = {
+                'status': json_data.data.status,
+                'output': json_data.data.output,
+            }
             let { component } = await postData(
                 url = '/component/tool_result_serper_search_box',
-                data = { 'data': json_data.data },
+                data = data,
                 with_token = false
             )
             return patch.append([], component).build();

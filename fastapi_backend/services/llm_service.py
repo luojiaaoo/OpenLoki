@@ -10,12 +10,9 @@ import uuid
 
 async def service_general_agent(call_llm: llm_schema.CallLLM):
     # 参数解析
-    toolset_names = call_llm.toolsets
-    if toolset_names is not None:
-        toolsets = [mcp_.mcp.filtered(lambda ctx, tool_def: mcp_util.get_prefix_real_tool_name(tool_def.name)[-1] in toolset_names) for mcp_ in mcp_util.all_mcps]
-        parseres_tool_call_result = {mcp_.tool_prefix: mcp_.parser_tool_call_result for mcp_ in mcp_util.all_mcps}
-    else:
-        toolsets, parseres_tool_call_result = None, None
+    toolset_names = [*(call_llm.toolsets or []), *mcp_util.default_mcps]
+    toolsets = [mcp_.mcp.filtered(lambda ctx, tool_def: mcp_util.get_prefix_real_tool_name(tool_def.name)[-1] in toolset_names) for mcp_ in mcp_util.all_mcps]
+    parseres_tool_call_result = {mcp_.tool_prefix: mcp_.parser_tool_call_result for mcp_ in mcp_util.all_mcps}
 
     sampling = call_llm.model_settings.sampling
 

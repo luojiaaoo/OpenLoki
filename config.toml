@@ -26,12 +26,14 @@ backend_log_filepath = "../logs/backend.log"
 backend_upload_url_prefix = "/upload"
 backend_upload_dirpath = "../upload/"
 
-[short_memory]
-len_message_history = 20
+[subagent.summarize]
 summarize_model_name = 'Qwen/Qwen3-32B'
 # >>>>> 硅基流动api_key
 summarize_api_key = "sk-xxxxxxxxxxxxxxxxxx"
 summarize_url = "https://api.siliconflow.cn/v1"
+
+[short_memory]
+len_message_history = 20
 
 [long_memory]
 # >>>>> 长期记忆引擎，开发者免费使用，https://memos.openmem.net/cn/
@@ -40,7 +42,7 @@ memos_url = "https://memos.memtensor.cn/api/openmem/v1"
 memos_timeout = 30
 
 [mcp]
-split_string = 'NameIsFollow'
+split_string = '&'
 
 [mcp.search]
 # >>>>> serper联网搜索api_key，注册送2500次免费搜索额度，https://serper.dev/login

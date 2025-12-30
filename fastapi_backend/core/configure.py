@@ -60,22 +60,23 @@ class Config:
     def llm_names(self):
         return list(self.config['llm'].keys())
 
+    ##### 子智能体
+    @property
+    def summarize_model_name(self):
+        return self.config['subagent']['summarize']['summarize_model_name']
+
+    @property
+    def summarize_api_key(self):
+        return self.config['subagent']['summarize']['summarize_api_key']
+
+    @property
+    def summarize_url(self):
+        return self.config['subagent']['summarize']['summarize_url']
+
     ##### 短期记忆配置
     @property
     def short_memory_len_message_history(self):
         return self.config['short_memory']['len_message_history']
-
-    @property
-    def short_memory_summarize_model_name(self):
-        return self.config['short_memory']['summarize_model_name']
-
-    @property
-    def short_memory_summarize_api_key(self):
-        return self.config['short_memory']['summarize_api_key']
-
-    @property
-    def short_memory_summarize_url(self):
-        return self.config['short_memory']['summarize_url']
 
     ##### 长期记忆配置
     @property

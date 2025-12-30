@@ -3,7 +3,6 @@ from pydantic_ai import FunctionToolset
 from models.domains import llm_domain
 from typing import List, Union
 from typing_extensions import TypedDict
-import json
 import asyncio
 import httpx
 from loguru import logger
@@ -11,6 +10,7 @@ from utils.log_util import TimeMonitor
 from bs4 import BeautifulSoup
 from utils import llm_util
 from pydantic_ai import RunContext
+from core.llm.subagent import agent_summarize
 
 
 class SerperSearch:
@@ -20,7 +20,7 @@ class SerperSearch:
         self._api_key = conf.mcp_search_serper_api_key
         self.timeout = conf.mcp_search_serper_timeout
         self.count = count
-        self.max_tokens = int(conf.llm_get_model_name(model_abbr=model_abbr)['context_length'] * 0.7)
+        self.max_tokens = int(conf.llm_get_model_name(model_abbr=model_abbr)['context_length'] * 0.9)
         self.headers = {
             'Content-Type': 'application/json',
         }
@@ -89,7 +89,8 @@ class SerperSearch:
                 doc.content = result
             else:
                 docs.remove(doc)
-        return self.truncate_docs(docs[::-1])
+        truncate_docs = self.truncate_docs(docs[::-1])
+        return await self.summarize_docs(truncate_docs)
 
     @TimeMonitor('截断网页的内容，避免超过最大上下文')
     def truncate_docs(self, docs: List[llm_domain.Doc], max_tokens=None):
@@ -105,17 +106,37 @@ class SerperSearch:
             truncated_docs.append(doc)
         return truncated_docs
 
+    @TimeMonitor('大模型总结知识')
+    async def summarize_docs(self, docs: List[llm_domain.Doc]):
+        return llm_util.FormatPrompt.dict_to_yaml(
+            dict(
+                index=[dict(title=i.title, snippet=i.snippet, link=i.link) for i in docs],
+                summarize=await agent_summarize.summarize(
+                    llm_util.FormatPrompt.dict_to_xml(
+                        [
+                            dict(
+                                title=i.title,
+                                link=i.link,
+                                markdown=i.to_markdown(),
+                            )
+                            for i in docs
+                        ],
+                    )
+                ),
+            ),
+        )
+
 
 def parser_tool_call_result(result_content: str):
     result_content = llm_util.FormatPrompt.yaml_to_dict(result_content)
     if result_content['success']:
-        output = llm_util.FormatPrompt.dict_to_json(result_content['message'])
-        return llm_domain.ReturnMcp(status=True, output=output)
+        index = llm_util.FormatPrompt.yaml_to_dict(result_content['message'])['index']
+        return llm_domain.ReturnMcp(status=True, output=llm_util.FormatPrompt.dict_to_json(index))
     else:
         return llm_domain.ReturnMcp(status=False, output=result_content['message'])
 
 
-datetime_toolset = FunctionToolset()
+toolset = FunctionToolset()
 
 
 class SerperSearchResult(TypedDict):
@@ -123,7 +144,7 @@ class SerperSearchResult(TypedDict):
     message: Union[List[str], str]
 
 
-@datetime_toolset.tool
+@toolset.tool
 async def serper_search(ctx: RunContext[llm_domain.DepsType], query: str) -> str:
     """
     通过Serper搜索引擎API进行网页的搜索。
@@ -133,37 +154,14 @@ async def serper_search(ctx: RunContext[llm_domain.DepsType], query: str) -> str
         str: yaml格式的搜索结果
     """
     try:
-        rt = llm_util.FormatPrompt.dict_to_yaml(
-            SerperSearchResult(
-                success=True,
-                message=[
-                    dict(
-                        doc_type=i.doc_type,
-                        title=i.title,
-                        snippet=i.snippet,
-                        link=i.link,
-                        markdown=i.to_markdown(),
-                    )
-                    for i in await SerperSearch(model_abbr=ctx.deps.model_abbr).search(query=query)
-                ],
-            ),
-        )
-        context_length = conf.llm_get_model_name(model_abbr=ctx.deps.model_abbr)['context_length']
-        if llm_util.UsageStats(ctx.usage).can_add_ratio(rt, max_context_length=context_length) == 1:
-            return rt
-        else:
-            return llm_util.FormatPrompt.dict_to_yaml(
-                SerperSearchResult(
-                    success=False, message=f'本次返回的文本太长，模型上下文不足，主动拒绝本次的联网搜索，{llm_util.UsageStats(ctx.usage).get_detailed_usage(context_length)}'
-                )
-            )
+        return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=True, message=await SerperSearch(model_abbr=ctx.deps.model_abbr).search(query=query)))
     except Exception as e:
         logger.exception('Serper搜索错误')
         return llm_util.FormatPrompt.dict_to_yaml(SerperSearchResult(success=False, message=str(e)))
 
 
 mcp_search_serper = llm_domain.Mcp(
-    tool_prefix=(i := 'serper_search'),
-    mcp=datetime_toolset.prefixed(f'{i}_{conf.mcp_split_string}'),
+    tool_prefix=(i := '<serper_search>'),
+    mcp=toolset.prefixed(f'{i}_{conf.mcp_split_string}'),
     parser_tool_call_result=parser_tool_call_result,
 )

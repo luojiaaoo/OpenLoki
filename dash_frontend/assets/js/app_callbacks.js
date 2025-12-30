@@ -217,7 +217,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
                 return `${value}\n` // 为value追加换行符
             }
         },
-        handleUserNewMessageSend: async (pressedCounts, nClicks, input_text, focusing, selected_model, selected_style, activate_long_memory, toolsets, history_message, loading) => {
+        handleUserNewMessageSend: async (pressedCounts, nClicks, input_text, focusing, selected_model, selected_style, activate_long_memory, toolsets, history_message, loading, bearer_token) => {
             // 按按钮，但是是初始化回调触发的，忽略
             if (dash_clientside.callback_context.triggered_id.type === 'btn-send-input-text' && nClicks === undefined) {
                 return window.dash_clientside.no_update;
@@ -243,7 +243,7 @@ window.dash_clientside = Object.assign({}, window.dash_clientside, {
             let instructions = instructions_comp.props.data !== undefined ? instructions_comp.props.data : null;
             let history_message_ = history_message !== undefined ? history_message : null;
             let data = {
-                'bearer_token': dash_component_api.getLayout('store-bearer-token').props.data,
+                'bearer_token': bearer_token,
                 'model_abbr': selected_model,
                 'user_prompt': input_text,
                 'message_history': history_message_,

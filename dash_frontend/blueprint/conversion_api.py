@@ -10,7 +10,7 @@ component_bp = Blueprint('component', __name__)
 @component_bp.route('/user_box', methods=['post'])
 def get_user_box():
     try:
-        data = request.get_json()
+        data = request.json
         sse, component = user_box.render(**data)
         return jsonify(
             {
@@ -22,7 +22,7 @@ def get_user_box():
         logger.error(f'获取用户消息盒子组件失败: {e}\n{traceback.format_exc()}')
 
 
-@component_bp.route('/assistant_thinking_box', methods=['get'])
+@component_bp.route('/assistant_thinking_box', methods=['post'])
 def get_assistant_thinking_box():
     try:
         id_markdown, component = assistant_thinking_box.render()
@@ -36,7 +36,7 @@ def get_assistant_thinking_box():
         logger.error(f'获取agent思考盒子组件失败: {e}\n{traceback.format_exc()}')
 
 
-@component_bp.route('/assistant_output_box', methods=['get'])
+@component_bp.route('/assistant_output_box', methods=['post'])
 def get_assistant_output_box():
     try:
         id_markdown, id_copy_markdown, component = assistant_output_box.render()
@@ -51,7 +51,7 @@ def get_assistant_output_box():
         logger.error(f'获取agent思考盒子组件失败: {e}\n{traceback.format_exc()}')
 
 
-@component_bp.route('/assistant_tool_call_box', methods=['get'])
+@component_bp.route('/assistant_tool_call_box', methods=['post'])
 def get_assistant_tool_call_box():
     try:
         id_markdown, component = assistant_tool_call_box.render()
@@ -68,8 +68,9 @@ def get_assistant_tool_call_box():
 @component_bp.route('/tool_result_serper_search_box', methods=['post'])
 def get_tool_result_serper_search_box():
     try:
-        data = request.json['data']
-        component = tool_result_serper_search_box.render(data=data)
+        status = request.json['status']
+        output = request.json['output']
+        component = tool_result_serper_search_box.render(status, output)
         return jsonify(
             {
                 'component': component,

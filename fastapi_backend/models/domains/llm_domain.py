@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Literal, Callable, Union
+from typing import Literal, Callable, Union, Optional
 from pydantic_ai.mcp import MCPServerStdio, MCPServerStreamableHTTP, MCPServerSSE
 import uuid
 from dataclasses import dataclass, field
@@ -9,14 +9,14 @@ from pydantic import BaseModel
 # 模型返回值类型
 class ChatType(StrEnum):
     START_OUTPUT = 'start_output'
-    DELTA_OUTPUT = 'delta_optput'
+    DELTA_OUTPUT = 'delta_output'
     OUTPUT = 'output'
     START_THINKING = 'start_thinking'
     THINKING = 'thinking'
     FINAL_OUTPUT = 'final_output'
     START_TOOL_CALL = 'start_tool_call'
     TOOL_CALL = 'tool_call'
-    TOOL_CALL_RETURN = 'tool_call_return'
+    START_TOOL_CALL_RETURN = 'start_tool_call_return'
     HISTORY_MESSAGES = 'history_messages'
     FINISH = 'finish'
 
@@ -46,7 +46,7 @@ MAPPING_SAMPLING = {
 class Mcp:
     tool_prefix: str
     mcp: Union[MCPServerStdio, MCPServerStreamableHTTP, MCPServerSSE]
-    parser_tool_call_result: Callable
+    parser_tool_call_result: Optional[Callable]
 
 
 @dataclass

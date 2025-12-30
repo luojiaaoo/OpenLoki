@@ -8,52 +8,42 @@ import feffery_markdown_components as fmc
 import json
 
 
-def render(data):
-    status = data['status']
+def render(status, output):
     if status:
-        json_data = json.loads(data['output'])
-        count_content = len(json_data)
-        uuids = [uuid.uuid4().hex for i in range(0, count_content)]
-        temp = [
-            fac.Fragment(
-                [
-                    fuc.FefferyExecuteJs(
-                        id={'type': 'serper-search-exec-js', 'index': uuids[i]},
-                    )
-                    for i in range(0, count_content)
-                ],
-            ),
-            fac.Fragment(
-                [
-                    dcc.Store(
-                        id={'type': 'serper-search-store-link', 'index': uuids[i]},
-                        data=json_data[i]['link'],
-                    )
-                    for i in range(0, count_content)
-                ],
-            ),
-            fac.AntdCard(
-                [
-                    fac.AntdCardGrid(
-                        json_data[i]['title'],
-                        id={'type': 'serper-search-card-grid-btn', 'index': uuids[i]},
-                        style={'cursor': 'pointer'},
-                    )
-                    for i in range(0, count_content)
-                ],
-                style={
-                    'background': 'transparent',
-                    'fontSize': 12,
-                    'fontStyle': 'italic',
-                    'minWidth': '60px',
-                    'maxWidth': '100%',
-                    'marginBottom': 10,
+        json_data = json.loads(output)
+        temp = fac.AntdTable(
+            columns=[
+                {
+                    'title': '标题',
+                    'dataIndex': '标题',
+                    'width': '20%',
                 },
-                title='联网搜索结果',
-            ),
-        ]
+                {
+                    'title': '简介',
+                    'dataIndex': '简介',
+                    'width': '70%',
+                },
+                {
+                    'title': '连接',
+                    'dataIndex': '连接',
+                    'renderOptions': {
+                        'renderType': 'link',
+                        'renderLinkText': '链接',
+                    },
+                    'width': '10%',
+                },
+            ],
+            data=[
+                {
+                    '标题': i['title'],
+                    '简介': i['snippet'],
+                    '连接': {'href': i['link']},
+                }
+                for i in json_data
+            ],
+        )
     else:
-        temp = [fac.AntdResult(title='联网搜索执行失败', subTitle=data['output'], status='error')]
+        temp = fac.AntdResult(title='联网搜索执行失败', subTitle=output, status='error')
     return dash_util.process_object(
         html.Div(
             fac.AntdRow(
@@ -67,7 +57,7 @@ def render(data):
                             ),
                             html.Div(
                                 [
-                                    *temp,
+                                    temp,
                                     fac.AntdSpace(
                                         [
                                             html.Div(datetime.now().strftime('%Y/%m/%d %H:%M:%S'), className='conversation-message-box-datetime'),
