@@ -53,9 +53,11 @@ OpenLoki/
    - `model_url`: 模型API地址
    - 支持配置多个大模型
 
+3. **子智能体配置** (`[subagent.*]`):
+   - 摘要模型相关配置
+
 3. **短期记忆配置** (`[short_memory]`):
    - 对话历史长度配置
-   - 摘要模型相关配置
 
 4. **长期记忆配置** (`[long_memory]`):
    - Memos记忆引擎配置
@@ -96,6 +98,8 @@ uv sync
 2. 可以添加更多用户账户
 
 ### 4. 启动项目
+
+> 应用本身不存储任何数据，除了长期记忆依赖外部记忆API，其他数据全部存储在浏览器端持久化Storage
 
 #### 方式一：使用批处理脚本（推荐）
 1. **启动后端服务**：双击运行`script/start_fastapi_backend.bat`
@@ -145,7 +149,7 @@ python server.py
 2. 调试时可将`config.toml`中的`launch_mode`设置为`dev`
 3. 日志文件默认保存在`logs/`目录下
 
-|![](screenshots/欢迎页.png)|![](screenshots/联网搜索结果.png)|
-| ---- | ---- |
-|![](screenshots/支持分类，多模型选择.png)|![](screenshots/支持长短期记忆，联网搜索工具.png)|
-|![](screenshots/思维链显示.png)|![](screenshots/属性修改.png)|
+| ![](screenshots/欢迎页.png)               | ![](screenshots/联网搜索结果.png)                 |
+| ----------------------------------------- | ------------------------------------------------- |
+| ![](screenshots/支持分类，多模型选择.png) | ![](screenshots/支持长短期记忆，联网搜索工具.png) |
+| ![](screenshots/思维链显示.png)           | ![](screenshots/属性修改.png)                     |
